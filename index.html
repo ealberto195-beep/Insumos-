@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#12263c">
+  <meta name="description" content="Inventario piloto de cocina industrial: existencias, entradas, salidas, mermas y reportes.">
+  <title>Inventario | Grupo Didans · Piloto</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">D</div><div><strong>GRUPO DIDANS</strong><span>Control operativo</span></div></div>
+      <div class="side-heading">INVENTARIO / PILOTO</div>
+      <nav class="nav" aria-label="Secciones">
+        <button class="nav-item active" data-view="resumen"><span>▦</span> Resumen</button>
+        <button class="nav-item" data-view="productos"><span>▤</span> Insumos</button>
+        <button class="nav-item" data-view="movimientos"><span>⇅</span> Movimientos</button>
+        <button class="nav-item" data-view="reportes"><span>▥</span> Reportes</button>
+      </nav>
+      <div class="sidebar-foot"><span class="status-dot"></span> Datos guardados solo en este navegador <small>Versión piloto v1.0 · No multiusuario</small></div>
+    </aside>
+    <main class="main">
+      <header class="header"><div><span class="eyebrow">COCINA INDUSTRIAL · CONTROL DE ALMACÉN</span><h1 id="page-title">Resumen de inventario</h1><p id="page-subtitle">Existencias, alertas y movimientos de insumos.</p></div><div class="header-actions"><span id="today-label" class="date-chip"></span><button id="quick-movement" class="btn primary">+ Registrar movimiento</button></div></header>
+      <div class="notice" role="note"><strong>PILOTO LOCAL:</strong> esta versión almacena la información <strong>solo en el navegador de este dispositivo</strong>. No se sincroniza con otros equipos. Usa <button id="quick-backup" class="inline-button">Respaldar datos</button> con frecuencia. No registres información confidencial.</div>
+      <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+
+      <section class="view active" id="view-resumen" aria-labelledby="page-title">
+        <div class="metrics">
+          <div class="metric"><span>Insumos registrados</span><strong id="metric-products">0</strong><small>En el catálogo</small></div>
+          <div class="metric"><span>Valor estimado de existencias</span><strong id="metric-value">$0.00</strong><small>Precio de referencia vigente</small></div>
+          <div class="metric"><span>Alertas de mínimo</span><strong id="metric-alerts">0</strong><small>Existencia ≤ mínimo configurado</small></div>
+          <div class="metric"><span>Merma del mes</span><strong id="metric-waste">$0.00</strong><small>Al costo registrado al momento</small></div>
+        </div>
+        <div class="two-col">
+          <article class="panel"><div class="panel-head"><div><h2>Existencias que requieren atención</h2><p>Insumos bajo el nivel de reposición</p></div><button class="text-button" data-go="productos">Ver insumos →</button></div><div id="low-stock-list" class="low-list"></div></article>
+          <article class="panel"><div class="panel-head"><div><h2>Movimientos recientes</h2><p>Últimos registros del almacén</p></div><button class="text-button" data-go="movimientos">Ver todos →</button></div><div id="recent-list" class="recent-list"></div></article>
+        </div>
+        <article class="panel tips"><h2>Cómo comenzar</h2><div class="steps"><div><span>1</span><strong>Da de alta los insumos</strong><small>SKU, unidad, ubicación, costo, mínimo y saldo inicial.</small></div><div><span>2</span><strong>Registra entradas y salidas</strong><small>Captura cada recepción y consumo de forma consistente.</small></div><div><span>3</span><strong>Realiza conteos físicos</strong><small>Usa el ajuste cuando la existencia real no coincida.</small></div></div></article>
+      </section>
+
+      <section class="view" id="view-productos" aria-label="Insumos">
+        <div class="section-head"><div><h2>Catálogo de insumos</h2><p>Control de existencias por producto, unidad y ubicación.</p></div><button id="new-product" class="btn primary">+ Nuevo insumo</button></div>
+        <div class="toolbar"><label class="search"><span>⌕</span><input id="product-search" placeholder="Buscar nombre, clave o categoría" aria-label="Buscar insumos"></label><label class="select-filter">Estado <select id="stock-filter"><option value="all">Todos</option><option value="low">Bajo mínimo</option><option value="positive">Con existencia</option></select></label><button id="export-stock" class="btn subtle">Exportar CSV</button></div>
+        <div class="panel table-panel"><div class="table-scroll"><table><thead><tr><th>Clave / insumo</th><th>Categoría / ubicación</th><th>Unidad</th><th class="number">Existencia</th><th class="number">Mínimo</th><th class="number">Costo ref.</th><th>Estado</th><th></th></tr></thead><tbody id="products-body"></tbody></table></div><div id="products-empty" class="empty" hidden></div></div>
+      </section>
+
+      <section class="view" id="view-movimientos" aria-label="Movimientos">
+        <div class="section-head"><div><h2>Bitácora de movimientos</h2><p>Entradas, consumo, mermas y ajustes por conteo físico.</p></div><button id="new-movement" class="btn primary">+ Registrar movimiento</button></div>
+        <div class="toolbar"><label class="select-filter">Tipo <select id="movement-filter"><option value="all">Todos</option><option value="entrada">Entrada</option><option value="salida">Salida</option><option value="merma">Merma</option><option value="ajuste">Ajuste</option><option value="inicial">Saldo inicial</option></select></label><label class="select-filter">Desde <input type="date" id="movement-since"></label><button id="export-movements" class="btn subtle">Exportar CSV</button></div>
+        <div class="panel table-panel"><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Insumo</th><th>Movimiento</th><th class="number">Cantidad</th><th class="number">Costo del movimiento</th><th>Responsable / motivo</th></tr></thead><tbody id="movements-body"></tbody></table></div><div id="movements-empty" class="empty" hidden></div></div>
+      </section>
+
+      <section class="view" id="view-reportes" aria-label="Reportes">
+        <div class="section-head"><div><h2>Reportes de control</h2><p>Consumos, mermas y respaldos del inventario.</p></div><button id="backup-button" class="btn subtle">Descargar respaldo JSON</button></div>
+        <div class="report-controls"><label>Mes a analizar <input type="month" id="report-month"></label><button id="export-report" class="btn primary">Exportar reporte CSV</button></div>
+        <div class="metrics report-metrics"><div class="metric"><span>Entradas del mes</span><strong id="report-in">$0.00</strong><small>Valor al costo registrado</small></div><div class="metric"><span>Salidas a producción</span><strong id="report-out">$0.00</strong><small>Valor al costo registrado</small></div><div class="metric"><span>Mermas registradas</span><strong id="report-waste">$0.00</strong><small>Valor de pérdidas</small></div><div class="metric"><span>Ajustes netos</span><strong id="report-adjust">$0.00</strong><small>Impacto estimado de conteos</small></div></div>
+        <div class="two-col"><article class="panel"><h2>Mermas por producto</h2><div id="waste-bars" class="bars"></div></article><article class="panel"><h2>Respaldo y recuperación</h2><p class="help">Descarga un archivo JSON después de cada jornada. Para restaurar, selecciona un respaldo previo del mismo sistema. <strong>La restauración reemplaza todos los datos actuales.</strong></p><div class="import-row"><label class="btn subtle file-label">Elegir respaldo JSON<input id="restore-file" type="file" accept=".json,application/json" hidden></label><span id="restore-name" class="muted">Ningún archivo seleccionado</span></div><button id="restore-button" class="btn danger" disabled>Restaurar respaldo</button></article></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="product-dialog" class="dialog"><form id="product-form" novalidate><div class="dialog-head"><div><span class="eyebrow">CATÁLOGO</span><h2 id="product-dialog-title">Nuevo insumo</h2></div><button type="button" class="icon-button" data-close="product-dialog" aria-label="Cerrar">×</button></div><div class="fields"><label>Clave / SKU *<input id="p-sku" maxlength="35" required placeholder="Ej. POL-001"></label><label>Nombre del insumo *<input id="p-name" maxlength="100" required placeholder="Ej. Pechuga de pollo"></label><label>Categoría *<select id="p-category" required><option>Proteínas</option><option>Frutas y verduras</option><option>Abarrotes</option><option>Lácteos</option><option>Congelados</option><option>Desechables</option><option>Limpieza</option><option>Otros</option></select></label><label>Unidad de control *<select id="p-unit" required><option value="kg">Kilogramo (kg)</option><option value="L">Litro (L)</option><option value="pza">Pieza (pza)</option><option value="caja">Caja</option><option value="paquete">Paquete</option></select></label><label>Ubicación<input id="p-location" maxlength="70" placeholder="Ej. Cámara fría"></label><label>Existencia mínima *<input type="number" id="p-min" min="0" step="0.001" value="0" required></label><label>Costo unitario (MXN) *<input type="number" id="p-cost" min="0" step="0.01" value="0" required></label><label id="initial-wrap">Existencia inicial *<input type="number" id="p-initial" min="0" step="0.001" value="0" required></label></div><p class="form-note" id="product-form-note">Usa siempre la misma unidad para cada insumo. La existencia inicial quedará registrada en la bitácora.</p><div class="dialog-actions"><button type="button" class="btn subtle" data-close="product-dialog">Cancelar</button><button type="submit" class="btn primary">Guardar insumo</button></div></form></dialog>
+
+  <dialog id="movement-dialog" class="dialog"><form id="movement-form" novalidate><div class="dialog-head"><div><span class="eyebrow">BITÁCORA</span><h2>Registrar movimiento</h2></div><button type="button" class="icon-button" data-close="movement-dialog" aria-label="Cerrar">×</button></div><div class="fields"><label>Fecha *<input type="date" id="m-date" required></label><label>Insumo *<select id="m-product" required></select></label><label>Tipo *<select id="m-type"><option value="entrada">Entrada de almacén</option><option value="salida">Salida a producción</option><option value="merma">Merma</option><option value="ajuste">Conteo físico / ajuste</option></select></label><label id="m-quantity-wrap"><span id="m-quantity-title">Cantidad *</span><input type="number" id="m-quantity" min="0.001" step="0.001" placeholder="0.000" required></label><label>Responsable *<input id="m-person" maxlength="80" required placeholder="Nombre o turno"></label><label>Motivo / referencia <input id="m-reason" maxlength="120" placeholder="Ej. Factura 174 / Preparación"></label><label class="full">Observaciones<textarea id="m-notes" rows="3" maxlength="350" placeholder="Opcional"></textarea></label></div><div id="movement-current" class="movement-hint">Selecciona un insumo.</div><p class="form-note">El movimiento conserva el costo vigente del insumo. Los ajustes por conteo físico registran únicamente la diferencia.</p><div class="dialog-actions"><button type="button" class="btn subtle" data-close="movement-dialog">Cancelar</button><button type="submit" class="btn primary">Guardar movimiento</button></div></form></dialog>
+</body>
+</html>
